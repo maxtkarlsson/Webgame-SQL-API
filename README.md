@@ -38,3 +38,11 @@ SQL database design chart will be here soon.
     PORT = 3000
 
     JWT_SECRET = (your jwt secret)
+
+## Commit message convention:
+
+- **(fix):** - Fix bugs.
+- **(feat):** - Add new feature.
+- **(refactor):** - Refactor, change or remove functions or variables.
+- **(build):** - Change file structure or install new packages.
+- **(docs):** - Update documentation.
