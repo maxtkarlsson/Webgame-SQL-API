@@ -3,11 +3,14 @@ const { sequelize } = require("./config");
 
 const { items } = require("../data/items");
 const { characters } = require("../data/characters");
+const { inventories } = require("../data/inventories");
 
 const gameDb = async () => {
   try {
     // Remove item table if it exists
+    await sequelize.query(`DROP TABLE IF EXISTS inventory;`);
     await sequelize.query(`DROP TABLE IF EXISTS item;`);
+    await sequelize.query(`DROP TABLE IF EXISTS character;`);
 
     // Create item table
     await sequelize.query(`
@@ -39,9 +42,6 @@ const gameDb = async () => {
       bind: itemInsertQueryVariables,
     });
 
-    // Remove character table if it exists
-    await sequelize.query(`DROP TABLE IF EXISTS character;`);
-
     // Create character table
     await sequelize.query(`
     CREATE TABLE IF NOT EXISTS character (
@@ -72,6 +72,46 @@ const gameDb = async () => {
     characterInsertQuery += ";";
     await sequelize.query(characterInsertQuery, {
       bind: characterInsertQueryVariables,
+    });
+
+    // Create inventory table
+    await sequelize.query(`
+    CREATE TABLE IF NOT EXISTS inventory (
+      quantity INTEGER NOT NULL,
+      fk_character_id INTEGER NOT NULL,
+      fk_item_id INTEGER NOT NULL,
+      FOREIGN KEY(fk_character_id) REFERENCES character(character_id),
+      FOREIGN KEY(fk_item_id) REFERENCES item(item_id)
+      );`);
+
+    let inventoryInsertQuery =
+      "INSERT INTO inventory (quantity, fk_character_id, fk_item_id) VALUES ";
+
+    let inventoryInsertQueryVariables = [];
+
+    inventories.forEach((inventory, index, array) => {
+      const variables = [
+        inventory.quantity,
+        inventory.fk_character_id,
+        inventory.fk_item_id,
+      ];
+      let string = "(";
+
+      for (let i = 1; i < variables.length + 1; i++) {
+        string += `$${inventoryInsertQueryVariables.length + i}`;
+        if (i < variables.length) string += ",";
+      }
+      inventoryInsertQuery += string + ")";
+      if (index < array.length - 1) inventoryInsertQuery += ",";
+
+      inventoryInsertQueryVariables = [
+        ...inventoryInsertQueryVariables,
+        ...variables,
+      ];
+    });
+    inventoryInsertQuery += ";";
+    await sequelize.query(inventoryInsertQuery, {
+      bind: inventoryInsertQueryVariables,
     });
 
     console.log("Database successfully populated with data...");
