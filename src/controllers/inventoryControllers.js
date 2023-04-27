@@ -14,7 +14,8 @@ exports.getAllInventories = async (req, res) => {
 
   const inventories = await sequelize.query(
     `SELECT i.quantity, i.fk_item_id, i.fk_character_id
-    FROM inventory i`,
+    FROM inventory i
+    LIMIT $limit OFFSET $offset`,
 
     {
       bind: { limit: limit, offset: offset },
